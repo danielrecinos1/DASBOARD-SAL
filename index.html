@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="60">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMOS — Mantenimiento SAL</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#E24B4A;--amber:#EF9F27;--green:#1D9E75;--blue:#2E7DD1;
+  --red-bg:#FCEBEB;--amber-bg:#FAEEDA;--green-bg:#EAF3DE;--blue-bg:#E6F1FB;
+  --red-txt:#A32D2D;--amber-txt:#854F0B;--green-txt:#3B6D11;--blue-txt:#185FA5;
+  --bg:#F0EEE8;--card:#FFFFFF;--border:#E2E0D8;
+  --text:#1A1A18;--muted:#888880;--track:#E8E6DE;
+}
+html,body{width:100%;height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);display:flex;flex-direction:column}
+
+/* HEADER */
+.header{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:36px;height:36px;border-radius:50%;background:#1A1A18;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.brand-title{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-0.02em}
+.brand-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.clock-block{text-align:right}
+.clock{font-family:'DM Mono',monospace;font-size:28px;font-weight:500;color:var(--text);line-height:1;letter-spacing:-0.02em}
+.clock-date{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* GRID */
+.grid{flex:1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:10px;padding:10px 14px;min-height:0;overflow:hidden}
+
+/* CARD */
+.card{background:var(--card);border-radius:14px;border:2px solid var(--border);display:flex;flex-direction:column;padding:10px 12px 8px;overflow:hidden;min-height:0}
+.card.aog    {border-color:var(--red)}
+.card.proceso{border-color:var(--amber)}
+.card.pendiente{border-color:var(--blue)}
+
+/* TOP ROW */
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-shrink:0}
+.ac-name{font-size:20px;font-weight:700;color:var(--text);letter-spacing:-0.02em;display:flex;align-items:center;gap:5px}
+.badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.badge.aog    {background:var(--red-bg);color:var(--red-txt)}
+.badge.proceso{background:var(--amber-bg);color:var(--amber-txt)}
+.badge.pendiente{background:var(--blue-bg);color:var(--blue-txt)}
+
+/* CENTER */
+.card-center{display:flex;align-items:center;gap:10px;flex:1;min-height:0}
+.donut-wrap{position:relative;flex-shrink:0;width:100px;height:100px}
+.donut-wrap svg{position:absolute;top:0;left:0;width:100%;height:100%}
+.donut-inner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;line-height:1.1}
+.donut-pct{font-size:16px;font-weight:700;color:var(--text)}
+.donut-lbl{font-size:9px;color:var(--muted);margin-top:1px}
+
+.card-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.info-label{font-size:8px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:1px}
+.time-big{font-family:'DM Mono',monospace;font-size:24px;font-weight:500;color:var(--text);line-height:1;letter-spacing:-0.02em}
+.time-sub{font-size:9px;color:var(--muted);margin-top:1px}
+
+/* DESTINO ROW */
+.destino-row{display:flex;align-items:center;gap:10px}
+.destino-code{font-size:20px;font-weight:700;color:var(--text);letter-spacing:0.05em}
+.destino-vuelo{display:flex;flex-direction:column}
+.destino-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em}
+.destino-hora{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--text)}
+
+/* GAUGE */
+.gauge-track{width:100%;height:7px;background:var(--track);border-radius:4px;overflow:hidden}
+.gauge-fill{height:100%;border-radius:4px}
+.gauge-fill.aog    {background:var(--red)}
+.gauge-fill.proceso{background:var(--amber)}
+.gauge-fill.pendiente{background:var(--blue)}
+.gauge-ends{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-top:2px}
+
+/* META */
+.card-meta{display:flex;gap:4px;padding-top:6px;border-top:1px solid var(--border);margin-top:6px;flex-shrink:0}
+.meta-item{flex:1}
+.meta-label{font-size:7px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em}
+.meta-value{font-size:11px;font-weight:700;color:var(--text);margin-top:1px}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;padding:5px 16px;background:var(--card);border-top:1px solid var(--border);font-size:10px;color:var(--muted);flex-shrink:0}
+.live{display:flex;align-items:center;gap:5px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.legend{display:flex;gap:12px;align-items:center}
+.leg{display:flex;align-items:center;gap:4px}
+.leg-dot{width:7px;height:7px;border-radius:50%}
+.empty{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);font-size:16px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">
+    <div class="brand-icon">✈</div>
+    <div>
+      <div class="brand-title">AMOS — Mantenimiento SAL</div>
+      <div class="brand-sub">Monitoreo en tiempo real · AOG primero · Luego por cierre de lapso</div>
+    </div>
+  </div>
+  <div class="clock-block">
+    <div class="clock" id="clk">--:--:--</div>
+    <div class="clock-date" id="clk-date"></div>
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="footer">
+  <div class="live"><div class="live-dot"></div><span id="status">En vivo</span></div>
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--red)"></div><span>AOG</span></div>
+    <div class="leg"><div class="leg-dot" style="background:var(--amber)"></div><span>En proceso</span></div>
+    <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div><span>Pendiente</span></div>
+  </div>
+  <span id="count"></span>
+</div>
+
+<script>
+// ── DATOS ESTÁTICOS (para prueba) ──────────────────────────────
+var DATA = [{"@odata.etag":"","ItemInternalId":"3d95a991-aa05-4b71-8734-44a8120b3bd0","A/C":"538AV","LAPSO INI AMOS":"46114.5659722222","G_x002e_T AMOS":"0.416666666666667","LAPSO FIN AMOS":"46114.9826388889","DESTINO":"SAP","HORA SALIDA DE VUELO":"46114.9930555556","ESTATUS":"FINALIZADO","BITACORA ABORDO":"SI"},{"@odata.etag":"","ItemInternalId":"68420e38-448b-4471-9f26-bc8e16aa5af1","A/C":"930AV","LAPSO INI AMOS":"46113.4659722222","G_x002e_T AMOS":"1.49236111111111","LAPSO FIN AMOS":"46114.9583333333","DESTINO":"JFK","HORA SALIDA DE VUELO":"46115.0555555556","ESTATUS":"FINALIZADO","BITACORA ABORDO":"SI"},{"@odata.etag":"","ItemInternalId":"7564d285-5171-46bd-b8c6-fffec7037eea","A/C":"967AV","LAPSO INI AMOS":"46114.1041666667","G_x002e_T AMOS":"0.75","LAPSO FIN AMOS":"46114.8541666667","DESTINO":"SF0","HORA SALIDA DE VUELO":"46115.0277777778","ESTATUS":"FINALIZADO","BITACORA ABORDO":"SI"},{"@odata.etag":"","ItemInternalId":"5ffa15cd-0d39-4242-909c-441dc906fe85","A/C":"902AV","LAPSO INI AMOS":"46114.9375","G_x002e_T AMOS":"0.208333333333333","LAPSO FIN AMOS":"46115.1458333333","DESTINO":"IAD","HORA SALIDA DE VUELO":"46115.1006944444","ESTATUS":"FINALIZADO","BITACORA ABORDO":"SI"},{"@odata.etag":"","ItemInternalId":"f24ca0cb-6b86-4dcc-b23e-e92936632773","A/C":"939AV","LAPSO INI AMOS":"46114.9513888889","G_x002e_T AMOS":"0.208333333333333","LAPSO FIN AMOS":"46115.1597222222","DESTINO":"IAD","HORA SALIDA DE VUELO":"46115.1597222222","ESTATUS":"FINALIZADO","BITACORA ABORDO":"SI"},{"@odata.etag":"","ItemInternalId":"87ef8a2c-9c74-4bbf-8378-a3cb321b5130","A/C":"454AV","LAPSO INI AMOS":"46115.4722222222","G_x002e_T AMOS":"0.583333333333333","LAPSO FIN AMOS":"46116.0555555556","DESTINO":"JFK","HORA SALIDA DE VUELO":"46116.0555555556","ESTATUS":"FINALIZADO","BITACORA ABORDO":"SI "},{"@odata.etag":"","ItemInternalId":"5526528f-2f38-43ce-9561-d40551129c89","A/C":"664AV","LAPSO INI AMOS":"46115.475","G_x002e_T AMOS":"0.177083333333333","LAPSO FIN AMOS":"46115.6520833333","DESTINO":"IAD","HORA SALIDA DE VUELO":"46115.6520833333","ESTATUS":"FINALIZADO","BITACORA ABORDO":"SI"},{"@odata.etag":"","ItemInternalId":"5da0c219-9164-47bf-a085-5c805b47ada1","A/C":"686TA","LAPSO INI AMOS":"46115.5090277778","G_x002e_T AMOS":"0.311111111111111","LAPSO FIN AMOS":"46115.8201388889","DESTINO":"JFK","HORA SALIDA DE VUELO":"46116.0208333333","ESTATUS":"FINALIZADO","BITACORA ABORDO":"SI "},{"@odata.etag":"","ItemInternalId":"4279be91-e824-44c0-94e4-04f73500abda","A/C":"905AV","LAPSO INI AMOS":"46115.7048611111","G_x002e_T AMOS":"0.208333333333333","LAPSO FIN AMOS":"46115.9131944444","DESTINO":"SFO","HORA SALIDA DE VUELO":"46115.9791666667","ESTATUS":"FINALIZADO","BITACORA ABORDO":"SI "},{"@odata.etag":"","ItemInternalId":"0908ddf8-3db5-4675-9d13-6fc35774241f","A/C":"901AV","LAPSO INI AMOS":"46115.9055555556","G_x002e_T AMOS":"0.208333333333333","LAPSO FIN AMOS":"46116.1138888889","DESTINO":"MGA","HORA SALIDA DE VUELO":"46116.1909722222","ESTATUS":"FINALIZADO","BITACORA ABORDO":"SI "},{"@odata.etag":"","ItemInternalId":"02474980-225a-4325-b228-cbdee2e1ddab","A/C":"939AV","LAPSO INI AMOS":"46115.9347222222","G_x002e_T AMOS":"0.208333333333333","LAPSO FIN AMOS":"46116.1430555556","DESTINO":"JFK","HORA SALIDA DE VUELO":"46116.1909722222","ESTATUS":"FINALIZADO","BITACORA ABORDO":"SI "},{"@odata.etag":"","ItemInternalId":"37e3e914-d2ae-4697-9e31-de06a58831fa","A/C":"920CG","LAPSO INI AMOS":"46116.1145833333","G_x002e_T AMOS":"0.5","LAPSO FIN AMOS":"46116.6145833333","DESTINO":"MGA","HORA SALIDA DE VUELO":"46116.6631944444","ESTATUS":"EN PROCESO","BITACORA ABORDO":"SI "},{"@odata.etag":"","ItemInternalId":"9032b525-5fed-48c5-8b0a-3f76f65cd4be","A/C":"980AV","LAPSO INI AMOS":"46116.1284722222","G_x002e_T AMOS":"0.434027777777778","LAPSO FIN AMOS":"46116.5625","DESTINO":"MGA","HORA SALIDA DE VUELO":"46116.5625","ESTATUS":"AOG","BITACORA ABORDO":""}];
+
+// ── HELPERS ────────────────────────────────────────────────────
+function parseDate(val){
+  if(!val || val==='') return null;
+
+  // Si es número serial de Excel
+  var n = parseFloat(val);
+  if(!isNaN(n) && n > 40000){
+    // Excel → UTC → luego ajustamos a -6
+    var ms = (n - 25569) * 86400000;
+    var d = new Date(ms);
+    d.setHours(d.getHours() - 0); // ← AJUSTE EL SALVADOR
+    return d;
+  }
+
+  // Si viene en formato ISO (Zulu)
+  var d = new Date(val);
+
+  // Forzamos ajuste de Zulu → local (-6)
+  d.setHours(d.getHours() - 6);
+
+  return d;
+}
+
+function claseEstatus(e){
+  var s = String(e||'').toUpperCase().trim();
+  if(s==='AOG') return 'aog';
+  if(s.indexOf('PROCESO')>-1) return 'proceso';
+  if(s==='PENDIENTE') return 'pendiente';
+  return null;
+}
+
+function badgeLabel(e){
+  var s = String(e||'').toUpperCase().trim();
+  if(s==='AOG') return '🔴 AOG';
+  if(s.indexOf('PROCESO')>-1) return '🟡 EN PROCESO';
+  if(s==='PENDIENTE') return '🔵 PENDIENTE';
+  return e;
+}
+
+function fmtRem(d){
+  var ms = d.getTime() - Date.now();
+  var neg = ms < 0;
+  var abs = Math.abs(ms);
+  var h = Math.floor(abs/3600000);
+  var m = Math.floor((abs%3600000)/60000);
+  return (neg?'-':'') + String(h).padStart(2,'0') + 'h ' + String(m).padStart(2,'0') + 'm';
+}
+
+function fmtH(d){
+  if(!d) return '--:--';
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+function fmtGT(val){
+  if(!val || val==='') return '--';
+  var n = parseFloat(val);
+  if(isNaN(n)) return String(val);
+  // Viene en días decimales de Excel, convertir a horas
+  var totalH = n * 24;
+  var h = Math.floor(totalH);
+  var m = Math.round((totalH-h)*60);
+  if(m===60){h++;m=0;}
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+' h';
+}
+
+function donut(pct, cls){
+  var R=38,cx=48,cy=48,circ=2*Math.PI*R;
+  var fill=circ*Math.min(1,Math.max(0,pct)),gap=circ-fill;
+  var cols={aog:'#E24B4A',proceso:'#EF9F27',pendiente:'#2E7DD1'};
+  var c = cols[cls]||'#888';
+  return '<svg viewBox="0 0 96 96"><circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="#E8E6DE" stroke-width="8"/><circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="'+c+'" stroke-width="8" stroke-dasharray="'+fill.toFixed(3)+' '+gap.toFixed(3)+'" stroke-linecap="round" transform="rotate(-90 '+cx+' '+cy+')"/></svg>';
+}
+
+// ── RENDER ─────────────────────────────────────────────────────
+function render(){
+  var rows = DATA.map(function(r){
+    var cls = claseEstatus(r['ESTATUS']);
+    if(!cls) return null;
+    var ini = parseDate(r['LAPSO INI AMOS']);
+    var fin = parseDate(r['LAPSO FIN AMOS']);
+    var sal = parseDate(r['HORA SALIDA DE VUELO']);
+    var gt = parseFloat(r['G_x002e_T AMOS']||r['G.T AMOS'])||0;
+    return {
+      ac:      r['A/C']||'',
+      ini:     ini,
+      fin:     fin,
+      sal:     sal,
+      gt:      gt,
+      destino: r['DESTINO']||'',
+      estatus: r['ESTATUS']||'',
+      cls:     cls
+    };
+  }).filter(function(d){ return d && d.ac && d.fin; })
+  .sort(function(a,b){
+    // AOG primero, luego por LAPSO FIN ASC
+    var pa = a.cls==='aog'?0:1, pb = b.cls==='aog'?0:1;
+    if(pa!==pb) return pa-pb;
+    return a.fin - b.fin;
+  }).slice(0,6);
+
+  document.getElementById('count').textContent =
+    rows.length+' aeronave'+(rows.length!==1?'s':'')+' activa'+(rows.length!==1?'s':'');
+
+  var grid = document.getElementById('grid');
+  if(!rows.length){
+    grid.innerHTML='<div class="empty"><span>✅</span><span>Sin aeronaves activas en este momento</span></div>';
+    return;
+  }
+
+  grid.innerHTML = rows.map(function(d){
+    var now = Date.now();
+    var totalMs = d.fin - d.ini;
+    var ejeMs   = now - d.ini.getTime();
+    var pct     = totalMs>0 ? Math.min(1,Math.max(0,ejeMs/totalMs)) : 0;
+    var pctN    = Math.round(pct*100);
+    var fracEje = Math.round(pct*100);
+
+    return "<div class='card "+d.cls+"'>"+
+      "<div class='card-top'>"+
+        "<div class='ac-name'>✈ "+d.ac+"</div>"+
+        "<div class='badge "+d.cls+"'>"+badgeLabel(d.estatus)+"</div>"+
+      "</div>"+
+      "<div class='card-center'>"+
+        "<div class='donut-wrap'>"+donut(pct,d.cls)+
+          "<div class='donut-inner'>"+
+            "<div class='donut-pct'>"+pctN+"%</div>"+
+            "<div class='donut-lbl'>lapso</div>"+
+          "</div>"+
+        "</div>"+
+        "<div class='card-info'>"+
+          "<div>"+
+            "<div class='info-label'>⏱ Tiempo restante lapso</div>"+
+            "<div class='time-big'>"+fmtRem(d.fin)+"</div>"+
+            "<div class='time-sub'>Cierre: "+fmtH(d.fin)+"</div>"+
+          "</div>"+
+          "<div class='destino-row'>"+
+            "<div class='destino-code'>"+d.destino+"</div>"+
+            "<div class='destino-vuelo'>"+
+              "<div class='destino-label'>✈ Salida vuelo</div>"+
+              "<div class='destino-hora'>"+fmtH(d.sal)+"</div>"+
+            "</div>"+
+          "</div>"+
+        "</div>"+
+      "</div>"+
+      "<div class='gauge-track'><div class='gauge-fill "+d.cls+"' style='width:"+fracEje+"%'></div></div>"+
+      "<div class='gauge-ends'><span>"+fmtH(d.ini)+"</span><span>Cierre "+fmtH(d.fin)+"</span></div>"+
+      "<div class='card-meta'>"+
+        "<div class='meta-item'><div class='meta-label'>Inicio lapso</div><div class='meta-value'>"+fmtH(d.ini)+"</div></div>"+
+        "<div class='meta-item'><div class='meta-label'>G.T AMOS</div><div class='meta-value'>"+fmtGT(d.gt)+"</div></div>"+
+        "<div class='meta-item'><div class='meta-label'>Destino</div><div class='meta-value'>"+d.destino+"</div></div>"+
+        "<div class='meta-item'><div class='meta-label'>Salida</div><div class='meta-value'>"+fmtH(d.sal)+"</div></div>"+
+      "</div>"+
+    "</div>";
+  }).join('');
+
+  document.getElementById('status').textContent =
+    'Actualizado: '+new Date().toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+}
+
+function tick(){
+  var now=new Date();
+  document.getElementById('clk').textContent=now.toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  document.getElementById('clk-date').textContent=now.toLocaleDateString('es-GT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+tick(); render(); setInterval(tick,1000); setInterval(render,30000);
+</script>
+</body>
+</html>
